@@ -48,7 +48,7 @@ def euclidean_leapfrog(
         num_steps: int,
         distr: Distribution
 ) -> Tuple[EuclideanLeapfrogState, EuclideanLeapfrogInfo]:
-    """Implements a the leapfrog integrator for a separable Hamiltonian.
+    """Implements the leapfrog integrator for a separable Hamiltonian.
 
     Args:
         state: An object containing the position and momentum variables of the

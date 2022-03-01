@@ -42,13 +42,14 @@ def langevin_metropolis_hastings(
     new_q, new_fldj = proposal.distr.inverse_transform(new_state.position)
     logu = np.log(unif)
     metropolis = mh - new_fldj - ildj
+    accprob = 1.0 if metropolis > 0 else np.exp(metropolis)
     accept = logu < metropolis
     proposal.update_acceptance_rate(metropolis)
     elapsed = time.time() - start
     if accept:
         state = new_state
         q = new_q
-    return state, q, new_q, accept, elapsed
+    return state, q, new_q, accept, accprob, elapsed
 
 def hamiltonian_metropolis_hastings(
         proposal: Proposal,
@@ -124,8 +125,10 @@ def hamiltonian_metropolis_hastings(
     # [1] https://wiki.helsinki.fi/download/attachments/48865399/ch7-rev.pdf
     logu = np.log(unif)
     metropolis = ham - new_ham - new_fldj - ildj + prop_info.logdet
-    accept = np.logical_and(logu < metropolis, prop_info.success)
-    proposal.update_acceptance_rate(metropolis)
+    accprob = 1.0 if metropolis > 0 else np.exp(metropolis)
+    success = prop_info.success
+    accept = np.logical_and(logu < metropolis, success)
+    proposal.update_acceptance_rate(accprob, success)
     # Compute the elapsed time.
     elapsed = time.time() - start
 
@@ -150,13 +153,14 @@ def hamiltonian_metropolis_hastings(
     if accept:
         state = new_state
         q = new_q
-    return state, q, new_q, accept, elapsed
+    return state, q, new_q, accept, accprob, elapsed
 
 class SampleInfo:
-    def __init__(self, sample: np.ndarray, proposal: np.ndarray, accepted: bool, elapsed: float):
+    def __init__(self, sample: np.ndarray, proposal: np.ndarray, accepted: bool, accprob: float, elapsed: float):
         self.sample = sample
         self.proposal = proposal
         self.accepted = accepted
+        self.accprob = accprob
         self.elapsed = elapsed
 
 def sample(
@@ -209,7 +213,7 @@ def sample(
         mh_unif, lv_unif = np.random.uniform(size=(2, ))
         if lv_unif < langevin_prob:
             # Metropolis-adjusted Langevin algorithm.
-            state, q, prop_q, accepted, elapsed = langevin_metropolis_hastings(
+            state, q, prop_q, accepted, accprob, elapsed = langevin_metropolis_hastings(
                 proposal,
                 state,
                 step_size,
@@ -218,7 +222,7 @@ def sample(
         else:
             # HMC with a randomized number of integration steps.
             ns = np.random.randint(lb, num_steps + 1)
-            state, q, prop_q, accepted, elapsed = hamiltonian_metropolis_hastings(
+            state, q, prop_q, accepted, accprob, elapsed = hamiltonian_metropolis_hastings(
                 proposal,
                 state,
                 step_size,
@@ -227,5 +231,5 @@ def sample(
                 alpha,
                 check_prob
             )
-        s = SampleInfo(q, prop_q, accepted, elapsed)
+        s = SampleInfo(q, prop_q, accepted, accprob, elapsed)
         yield s

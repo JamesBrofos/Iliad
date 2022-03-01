@@ -228,7 +228,10 @@ def riemannian_euler_b(
             max_iters,
         )
 
-    state.velocity = state.inv_metric.dot(state.momentum)
+    # It isn't necessary to update the velocity since the Euler-B integrator
+    # already does that.
+    #
+    # >>> assert np.allclose(state.velocity, state.inv_metric.dot(state.momentum))
     state.logdet_metric = 2.0*np.sum(np.log(np.diag(state.sqrtm_metric)))
     return state, info
 

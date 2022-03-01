@@ -41,13 +41,13 @@ class TestSymplecticIntegrators(unittest.TestCase):
         num_steps = 1
         state_a, _ = riemannian_euler_b(state, 0.5*step_size, num_steps, distr, thresh, max_iters)
         state_c, _ = riemannian_euler_a(state_a, 0.5*step_size, num_steps, distr, thresh, max_iters)
-        state_l, _ = riemannian_leapfrog(state, step_size, num_steps, distr, thresh, max_iters, False, False)
+        state_l, _ = riemannian_leapfrog(state, step_size, num_steps, distr, thresh, max_iters, False, False, False)
         self.assertTrue(np.allclose(state_c.position, state_l.position))
         self.assertTrue(np.allclose(state_c.momentum, state_l.momentum))
 
         for step_size in np.logspace(-10, -1, 10):
             state_a, _ = riemannian_euler_a(state, step_size, num_steps, distr, thresh, max_iters)
-            state_l, _ = riemannian_leapfrog(state, step_size, num_steps, distr, thresh, max_iters, False, False)
+            state_l, _ = riemannian_leapfrog(state, step_size, num_steps, distr, thresh, max_iters, False, False, False)
             d = np.linalg.norm(state_a.position - state_l.position)
             print('{:.3e}'.format(d))
 
@@ -114,7 +114,7 @@ class TestSymplecticIntegrators(unittest.TestCase):
         vector_field = riemannian_vector_field(distr)
         for step_size in np.logspace(-10, -1, 10):
             state_o, _ = lobatto_leapfrog(state_lo, step_size, num_steps, distr, vector_field, thresh, max_iters)
-            state_l, _ = riemannian_leapfrog(state_lf, step_size, num_steps, distr, thresh, max_iters, False, False)
+            state_l, _ = riemannian_leapfrog(state_lf, step_size, num_steps, distr, thresh, max_iters, False, False, False)
             d = np.linalg.norm(state_o.position - state_l.position)
             print('{:.3e}'.format(d))
 

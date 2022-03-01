@@ -61,7 +61,7 @@ def error_intercept(proposal):
     def wrap(*args, **kwargs):
         try:
             value = proposal(*args, **kwargs)
-        except (ValueError, np.linalg.LinAlgError):
+        except (ValueError, np.linalg.LinAlgError, ZeroDivisionError):
             state = args[1]
             info = Info()
             info.success = False
@@ -130,9 +130,8 @@ class Proposal(abc.ABC):
         self.info.absrev.update(absrev)
         self.info.relrev.update(relrev)
 
-    def update_acceptance_rate(self, metropolis: float):
-        ap = 1.0 if metropolis > 0 else np.exp(metropolis)
-        self.info.accprob.update(ap)
+    def update_acceptance_rate(self, accprob: float, success: bool):
+        self.info.accprob.update(accprob if success else 0.0)
 
     def reverse(self, state: State, step_size: float, num_steps: int) -> Tuple[float, float]:
         """Compute the reversibility of the proposal operator by first integrating

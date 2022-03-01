@@ -33,9 +33,13 @@ class TestRiemannianLeapfrog(unittest.TestCase):
         thresh = 1e-13
         max_iters = 10000
 
-        glf_state_a, _ = riemannian_leapfrog(state, step_size, num_steps, distr, thresh, max_iters, False, False)
+        glf_state_a, _ = riemannian_leapfrog(state, step_size, num_steps, distr, thresh, max_iters, False, False, False)
         velocity_vector, force_vector = riemannian_velocity_and_force(distr)
         glf_state_b, _ = vector_field_riemannian_leapfrog(state, step_size, num_steps, distr, velocity_vector, force_vector, thresh, max_iters)
         self.assertTrue(np.allclose(glf_state_a.position, glf_state_b.position))
         self.assertTrue(np.allclose(glf_state_a.momentum, glf_state_b.momentum))
         self.assertTrue(np.allclose(glf_state_a.log_posterior, glf_state_b.log_posterior))
+
+        glf_state_c, _ = riemannian_leapfrog(state, step_size, num_steps, distr, thresh, max_iters, True, True, True)
+        self.assertTrue(np.allclose(glf_state_a.position, glf_state_c.position))
+        self.assertTrue(np.allclose(glf_state_a.momentum, glf_state_c.momentum))
