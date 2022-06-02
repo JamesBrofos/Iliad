@@ -44,7 +44,7 @@ def langevin_metropolis_hastings(
     metropolis = mh - new_fldj - ildj
     accprob = 1.0 if metropolis > 0 else np.exp(metropolis)
     accept = logu < metropolis
-    proposal.update_acceptance_rate(metropolis)
+    proposal.update_acceptance_rate(metropolis, True)
     elapsed = time.time() - start
     if accept:
         state = new_state
